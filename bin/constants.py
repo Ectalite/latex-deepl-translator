@@ -6,7 +6,7 @@
 # USE 'constants_perso' to declare your modifications
 
 # the tag for replacement
-tag = '€'
+tag = '#'
 
 
 # 1. list of LaTeX environnment whose content will be discard
@@ -36,7 +36,8 @@ list_cmd_arg_discard = ['usepackage',
 						'includegraphics',
 						'label',
 						'ref',
-						'cite'
+						'cite',
+						'say'
 						]
 
 # Add you personnal commands in 'constants_perso.py'

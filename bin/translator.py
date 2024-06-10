@@ -16,42 +16,36 @@ import os
 import yaml
 from constants import *    # Definition of the tag symbol and special commands/environnments
 from constants_perso import *  # Personnal customization
+import deepl
 
 #--------------------------------------------------
 #--------------------------------------------------
 
 # Arguments 
-parser = argparse.ArgumentParser(description='Conversion a LaTex file to a text file keeping appart commands and maths.')
-parser.add_argument('inputfile', help='input LaTeX filename')
-parser.add_argument('outputfile', nargs='?', help='output text filename')
-parser.add_argument('dicfile', nargs='?', help='output dictionnary filename')
+parser = argparse.ArgumentParser(description='Translate latex file with minimal destruction')
+parser.add_argument("-i", dest='inputfile', help='input file to translate')
+parser.add_argument("-o", dest='outputfile', nargs='?', help='output translated file')
+parser.add_argument("-d", dest="DEEPL_AUTH_KEY", required=False, help="Deepl API key")
+parser.add_argument("-f", dest="FROM", default="DE", required=True, help="Language of the source document(s) e.g. DE")
+parser.add_argument("-t", dest="TO", default="EN", required=True, help="Language of the target document e.g EN-GB")
 options = parser.parse_args()
+
+DEEPL_AUTH_KEY = os.environ.get("DEEPL_AUTH_KEY")
+    if DEEPL_AUTH_KEY == None :
+        if args.DEEPL_AUTH_KEY == None:
+            print('Specify a Deepl API key.')
+            sys.exit(0)
+        else:
+           DEEPL_AUTH_KEY = options.DEEPL_AUTH_KEY
 
 tex_file = options.inputfile
 output_file = options.outputfile
-dictionnary_file = options.dicfile
-
-
-# Get argument: a tex file
-file_name, file_extension = os.path.splitext(tex_file) 
-
-
-# Output file name 
-if output_file:
-    txt_file = output_file    # Name given by user
-else:
-    txt_file = file_name+'.txt' # If no name add a .txt extension
-
-
-# Dictionnary file name 
-if dictionnary_file:
-    dic_file = dictionnary_file    # Name given by user
-else:
-    dic_file = file_name+'.dic' # If no name add a .dic extension
+dic_file = tex_file + '.dic'
+txt_file = tex_file + '.txt'
 
 
 # Read file object to string
-fic_tex = open(tex_file, 'r', encoding='utf-8')
+fic_tex = open(tex_file, 'r')
 text_all = fic_tex.read()
 fic_tex.close()
 
@@ -119,12 +113,22 @@ for cmd in list_cmd_arg_discard + list_cmd_arg_discard_perso:
 text_new = re.sub(r'\\[a-zA-Z]+',func_repl,text_new, flags=re.MULTILINE|re.DOTALL)
 
 
+### Translation
+
+translator = deepl.Translator(DEEPL_AUTH_KEY)
+result = translator.translate_text(text_new, source_lang=options.FROM, target_lang=options.TO, preserve_formatting=True)
+resultText = result.text
+
+# Replacement to latex file
+
+for i,val in dictionnary.items():
+    tag_str = tag+str(i)+tag
+    val = val.replace('\\','\\\\')    # double \\ for correct write
+    # val = re.escape(val)
+    resultText = re.sub(tag_str,val,resultText, flags=re.MULTILINE|re.DOTALL)
 
 
-# Output: text file
-with open(txt_file, 'w', encoding='utf-8') as fic_txt:
-    fic_txt.write(text_new)
+# Write the result
+with open(output_file, 'w') as out_tex:
+    out_tex.write(resultText)
 
-# Output: dictionnary file
-with open(dic_file, 'w', encoding='utf-8') as fic_dic:
-    yaml.dump(dictionnary,fic_dic, default_flow_style=False,allow_unicode=True)

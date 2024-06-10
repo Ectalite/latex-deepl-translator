@@ -4,7 +4,7 @@
 
 
 # Need to modify the tag? It's there:
-# tag = '€'
+#tag = '#'
 
 
 # 1. list of personnal LaTeX environnment whose content will be discard
@@ -21,4 +21,4 @@ list_env_discard_perso = []    # like ['equation','align*']
 # Ex. \usepackage[option]{class} will be replace by a tag
 # Ex. \emph{my text} is not there and the content will be kept
 
-list_cmd_arg_discard_perso = ['ci','mybox']
+list_cmd_arg_discard_perso = ['ci','mybox','input']
